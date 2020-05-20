@@ -23,9 +23,10 @@ const Beat = (props) => {
                 width: props.width,
                 height: props.height,
                 position: "absolute",
-                top: props.active * props.height
+                top: props.active * props.height,
+                userSelect: "none"
             }}
-        />
+        >{props.activeName}</div>
     </DraggableCore>;
 
     return (

@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import Beat from './Beat';
 
+const randomInt = (min, max) => {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
 const notes = [
+    { name: "?", frequency: 0 },
     { name: "E6", frequency: 1318.51 },
     { name: "D6", frequency: 1174.66 },
     { name: "C6", frequency: 1046.5 },
@@ -15,11 +20,12 @@ const notes = [
     { name: "B4", frequency: 493.88 },
     { name: "A4", frequency: 440 },
     { name: "G4", frequency: 392.00 },
+    { name: "tie", frequency: 0 },
     { name: "rest", frequency: 0 }
 ];
 
 const settings = {
-    numNotes: 14,
+    numNotes: notes.length,
     numBeats: 16,
     noteHeight: 20,
     noteWidth: 40,
@@ -32,16 +38,12 @@ const settings = {
     },
     get noteDuration() {
         return 60000 / this.bpm;
-    },
-    get totalTime() {
-        return this.noteDuration * this.numNotes;
     }
 };
 
 // global audio context and oscillator
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
-let osc;
 
 // global interval variable
 var playInterval;
@@ -49,7 +51,7 @@ var playInterval;
 const App = () => {
     const [playing, setPlaying] = useState(false);
     const [melody, setMelody] = useState([
-        11, 10, 9, 8, 10, 13, 12, 11, 11, 13, 13, 13, 13, 13, 13, 13
+        8, 6, 3, 8, 7, 15, 4, 14, 3, 15, 0, 15, 10, 15, 15, 15
     ]);
 
     // need a reference to the piano roll container div
@@ -83,6 +85,7 @@ const App = () => {
             moveCallback={(y) => setNote(i, y)}
             key={i}
             active={melody[i]}
+            activeName={notes[melody[i]].name}
             numNotes={settings.numNotes}
             height={settings.noteHeight}
             width={settings.noteWidth} />
@@ -93,13 +96,21 @@ const App = () => {
     const play = () => {
         if (!playing) {
             setPlaying(true);
-            osc = audioContext.createOscillator();
-            osc.type = 'sine';
-            osc.start();
-            osc.stop(audioContext.currentTime + settings.totalTime);
-            const playNote = (freq) => {
-                osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-                osc.connect(audioContext.destination);
+            const playNote = (note, duration) => {
+                if (note.name !== "tie") {
+                    const osc = audioContext.createOscillator();
+                    osc.type = 'sine';
+                    let freq;
+                    if (note.name === "?") {
+                        freq = notes[randomInt(1, settings.numNotes - 2)].frequency;
+                    } else {
+                        freq = note.frequency;
+                    }
+                    osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+                    osc.connect(audioContext.destination);
+                    osc.start();
+                    osc.stop(audioContext.currentTime + (duration - 1) / 1000);
+                }
             };
 
             let counter = 0;
@@ -107,13 +118,25 @@ const App = () => {
                 if (counter >= melody.length) {
                     stop();
                 } else {
+                    let duration = settings.noteDuration;
+                    if (notes[melody[counter]].name === "tie") {
+                        duration = 0;
+                    } else {
+                        for (let i = counter + 1; i < melody.length; i++) {
+                            if (notes[melody[i]].name === "tie") {
+                                duration += settings.noteDuration;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
                     playNote(
-                        notes[melody[counter]].frequency,
-                        settings.noteDuration
+                        notes[melody[counter]],
+                        duration
                     );
                 }
                 counter++;
-            }, 300);
+            }, settings.noteDuration);
         }
     };
 
@@ -121,7 +144,6 @@ const App = () => {
     // note that playInterval and osc must be in global scope for this to work
     const stop = () => {
         setPlaying(false);
-        osc.stop();
         clearInterval(playInterval);
     };
 
