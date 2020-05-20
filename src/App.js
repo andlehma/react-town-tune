@@ -23,13 +23,25 @@ const settings = {
     numBeats: 16,
     noteHeight: 20,
     noteWidth: 40,
+    bpm: 200,
     get pianoRollHeight() {
         return this.noteHeight * this.numNotes;
     },
     get pianoRollWidth() {
         return this.noteWidth * this.numBeats;
+    },
+    get noteDuration() {
+        return 60000 / this.bpm;
+    },
+    get totalTime() {
+        return this.noteDuration * this.numNotes;
     }
 };
+
+// global audio context and oscillator
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioContext = new AudioContext();
+let osc;
 
 // global interval variable
 var playInterval;
@@ -81,31 +93,35 @@ const App = () => {
     const play = () => {
         if (!playing) {
             setPlaying(true);
-            const playNote = (freq, duration) => {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const audioContext = new AudioContext();
-                const osc = audioContext.createOscillator();
-                osc.type = 'sine';
+            osc = audioContext.createOscillator();
+            osc.type = 'sine';
+            osc.start();
+            osc.stop(audioContext.currentTime + settings.totalTime);
+            const playNote = (freq) => {
                 osc.frequency.setValueAtTime(freq, audioContext.currentTime);
                 osc.connect(audioContext.destination);
-                osc.start();
-                osc.stop(audioContext.currentTime + duration / 1000);
             };
 
             let counter = 0;
             playInterval = setInterval(() => {
-                playNote(notes[melody[counter]].frequency, 300);
-                if (counter++ >= melody.length - 1) {
+                if (counter >= melody.length) {
                     stop();
+                } else {
+                    playNote(
+                        notes[melody[counter]].frequency,
+                        settings.noteDuration
+                    );
                 }
+                counter++;
             }, 300);
         }
     };
 
-    // clear playInterval to stop playback
-    // note that playInterval must be in global scope for this to work
+    // clear interval and stop oscillator
+    // note that playInterval and osc must be in global scope for this to work
     const stop = () => {
         setPlaying(false);
+        osc.stop();
         clearInterval(playInterval);
     };
 
