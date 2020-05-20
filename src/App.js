@@ -31,6 +31,9 @@ const settings = {
     }
 };
 
+// global interval variable
+var playInterval;
+
 const App = () => {
     const [playing, setPlaying] = useState(false);
     const [melody, setMelody] = useState([
@@ -46,7 +49,7 @@ const App = () => {
         // get Y relative to piano roll div
         const rect = pianoRollRef.current.getBoundingClientRect();
         let relativeY = y - rect.y;
-        
+
         // normalize Y
         if (relativeY < 0) {
             relativeY = 0;
@@ -90,20 +93,28 @@ const App = () => {
             };
 
             let counter = 0;
-            let myInterval = setInterval(() => {
+            playInterval = setInterval(() => {
                 playNote(notes[melody[counter]].frequency, 300);
                 if (counter++ >= melody.length - 1) {
-                    setPlaying(false);
-                    clearInterval(myInterval);
+                    stop();
                 }
             }, 300);
         }
     };
 
+    // clear playInterval to stop playback
+    // note that playInterval must be in global scope for this to work
+    const stop = () => {
+        setPlaying(false);
+        clearInterval(playInterval);
+    };
+
     return (
         <div ref={pianoRollRef} id="app">
             {beats}
-            {!playing && <button onClick={play}>Play</button>}
+            {playing ?
+                <button onClick={stop}>Stop</button> :
+                <button onClick={play}>Play</button>}
         </div>
     );
 };
