@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Beat from './Beat';
 
 const notes = [
@@ -18,70 +18,94 @@ const notes = [
     { name: "rest", frequency: 0 }
 ];
 
-const App = () => {
-    const mainRef = React.createRef();
-    const numNotes = 14;
-    const numBeats = 16;
-    const pianoRollHeight = 300;
-    const beatWidth = 40;
+const settings = {
+    numNotes: 14,
+    numBeats: 16,
+    noteHeight: 20,
+    noteWidth: 40,
+    get pianoRollHeight() {
+        return this.noteHeight * this.numNotes;
+    },
+    get pianoRollWidth() {
+        return this.noteWidth * this.numBeats;
+    }
+};
 
-    // default melody
-    let melody = [
+const App = () => {
+    const [playing, setPlaying] = useState(false);
+    const [melody, setMelody] = useState([
         11, 10, 9, 8, 10, 13, 12, 11, 11, 13, 13, 13, 13, 13, 13, 13
-    ];
+    ]);
+
+    // need a reference to the piano roll container div
+    // to calculate relative Y position when moving notes
+    const pianoRollRef = React.createRef();
 
     // set melody[i] given mouse clientY
     const setNote = (i, y) => {
         // get Y relative to piano roll div
-        const rect = mainRef.current.getBoundingClientRect();
-        const relativeY = y - rect.y;
+        const rect = pianoRollRef.current.getBoundingClientRect();
+        let relativeY = y - rect.y;
+        
+        // normalize Y
+        if (relativeY < 0) {
+            relativeY = 0;
+        } else if (relativeY >= settings.pianoRollHeight) {
+            relativeY = settings.pianoRollHeight - 1;
+        }
 
         // calculate and set note based on relative mouse Y
-        let n = Math.floor((relativeY / pianoRollHeight) * numNotes);
-        melody[i] = n;
+        let n = Math.floor((relativeY / settings.pianoRollHeight) * settings.numNotes);
+        let newMelody = [...melody];
+        newMelody[i] = n;
+        setMelody(newMelody);
     }
 
     // initialize child beat elements
     let beats = [];
-    for (let i = 0; i < numBeats; i++) {
+    for (let i = 0; i < settings.numBeats; i++) {
         beats.push(<Beat
             moveCallback={(y) => setNote(i, y)}
             key={i}
-            numNotes={numNotes}
-            initialNote={melody[i]}
-            height={pianoRollHeight}
-            width={beatWidth} />
+            active={melody[i]}
+            numNotes={settings.numNotes}
+            height={settings.noteHeight}
+            width={settings.noteWidth} />
         );
     }
 
     // play melody using web audio api
     const play = () => {
-        const playNote = (freq, duration) => {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            const audioContext = new AudioContext();
-            const osc = audioContext.createOscillator();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-            osc.connect(audioContext.destination);
-            osc.start();
-            osc.stop(audioContext.currentTime + duration / 1000);
-        }
+        if (!playing) {
+            setPlaying(true);
+            const playNote = (freq, duration) => {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
+                const osc = audioContext.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+                osc.connect(audioContext.destination);
+                osc.start();
+                osc.stop(audioContext.currentTime + duration / 1000);
+            };
 
-        let counter = 0;
-        let myInterval = setInterval(() => {
-            playNote(notes[melody[counter]].frequency, 300);
-            if (counter++ >= melody.length - 1) {
-                clearInterval(myInterval);
-            }
-        }, 300);
-    }
+            let counter = 0;
+            let myInterval = setInterval(() => {
+                playNote(notes[melody[counter]].frequency, 300);
+                if (counter++ >= melody.length - 1) {
+                    setPlaying(false);
+                    clearInterval(myInterval);
+                }
+            }, 300);
+        }
+    };
 
     return (
-        <div ref={mainRef} id="app">
+        <div ref={pianoRollRef} id="app">
             {beats}
-            <button onClick={play}>Play</button>
+            {!playing && <button onClick={play}>Play</button>}
         </div>
     );
-}
+};
 
 export default App;

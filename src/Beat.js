@@ -1,33 +1,32 @@
 import React from 'react';
-import Draggable from 'react-draggable';
+import { DraggableCore } from 'react-draggable';
 
 const Beat = (props) => {
     let notes = [];
-    let noteHeight = props.height / props.numNotes;
     for (let i = 0; i < props.numNotes; i++) {
         notes.push(
             <div
                 key={i}
                 className="note"
-                style={{ width: props.width, height: noteHeight }} />
-        )
+                style={{ width: props.width, height: props.height }} />
+        );
     }
 
-    let activeNote = <Draggable
+    let activeNote = <DraggableCore
         axis="y"
-        grid={[noteHeight, noteHeight]}
+        grid={[props.height, props.height]}
         bounds="parent"
-        onStop={(e) => {props.moveCallback(e.clientY)}}>
+        onDrag={(e) => props.moveCallback(e.clientY)}>
         <div
             className="note active"
             style={{
                 width: props.width,
-                height: noteHeight,
+                height: props.height,
                 position: "absolute",
-                top: noteHeight * props.initialNote || 0
+                top: props.active * props.height
             }}
         />
-    </Draggable>;
+    </DraggableCore>;
 
     return (
         <div className="beat">
