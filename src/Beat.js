@@ -1,6 +1,23 @@
 import React from 'react';
 import { DraggableCore } from 'react-draggable';
 
+const brightenColor = (color, offset) => {
+    let r = parseInt(color.slice(1, 3), 16);
+    let g = parseInt(color.slice(3, 5), 16);
+    let b = parseInt(color.slice(5, 7), 16);
+
+    r += offset;
+    g += offset;
+    b += offset;
+
+    if (r > 255) r = 255;
+    if (g > 255) g = 255;
+    if (b > 255) b = 255;
+
+    return "#" + r.toString(16) + g.toString(16) + b.toString(16);
+
+}
+
 const Beat = (props) => {
     let notes = [];
     for (let i = 0; i < props.numNotes; i++) {
@@ -22,11 +39,15 @@ const Beat = (props) => {
             style={{
                 width: props.width,
                 height: props.height,
-                position: "absolute",
-                top: props.active * props.height,
-                userSelect: "none"
+                lineHeight: props.height + "px",
+                top: props.activeIndex * props.height,
+                color: props.currentlyPlaying ?
+                    "black" : "white",
+                backgroundColor: props.currentlyPlaying ?
+                    brightenColor(props.activeNote.color, 50) :
+                    props.activeNote.color
             }}
-        >{props.activeName}</div>
+        >{props.activeNote.name}</div>
     </DraggableCore>;
 
     return (

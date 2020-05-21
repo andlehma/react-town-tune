@@ -6,29 +6,29 @@ const randomInt = (min, max) => {
 }
 
 const notes = [
-    { name: "?", frequency: 0 },
-    { name: "E6", frequency: 1318.51 },
-    { name: "D6", frequency: 1174.66 },
-    { name: "C6", frequency: 1046.5 },
-    { name: "B5", frequency: 987.77 },
-    { name: "A5", frequency: 880 },
-    { name: "G5", frequency: 783.99 },
-    { name: "F5", frequency: 698.46 },
-    { name: "E5", frequency: 659.25 },
-    { name: "D5", frequency: 587.33 },
-    { name: "C5", frequency: 523.25 },
-    { name: "B4", frequency: 493.88 },
-    { name: "A4", frequency: 440 },
-    { name: "G4", frequency: 392.00 },
-    { name: "tie", frequency: 0 },
-    { name: "rest", frequency: 0 }
+    { name: "?", frequency: 0, color: "#f35fd2" },
+    { name: "E6", frequency: 1318.51, color: "#c336a0" },
+    { name: "D6", frequency: 1174.66, color: "#d21e87" },
+    { name: "C6", frequency: 1046.5, color: "#ce2310" },
+    { name: "B5", frequency: 987.77, color: "#df5506" },
+    { name: "A5", frequency: 880, color: "#eb6d04" },
+    { name: "G5", frequency: 783.99, color: "#f5a306" },
+    { name: "F5", frequency: 698.46, color: "#f1d009" },
+    { name: "E5", frequency: 659.25, color: "#88db08" },
+    { name: "D5", frequency: 587.33, color: "#0cc408" },
+    { name: "C5", frequency: 523.25, color: "#30e2a0" },
+    { name: "B4", frequency: 493.88, color: "#0fb8d9" },
+    { name: "A4", frequency: 440, color: "#2689cf" },
+    { name: "G4", frequency: 392.00, color: "#b428d4" },
+    { name: "tie", frequency: 0, color: "#b063d5" },
+    { name: "rest", frequency: 0, color: "#aeadae" }
 ];
 
 const settings = {
     numNotes: notes.length,
     numBeats: 16,
-    noteHeight: 20,
-    noteWidth: 40,
+    noteHeight: 30,
+    noteWidth: 60,
     bpm: 200,
     get pianoRollHeight() {
         return this.noteHeight * this.numNotes;
@@ -49,7 +49,7 @@ const audioContext = new AudioContext();
 var playInterval;
 
 const App = () => {
-    const [playing, setPlaying] = useState(false);
+    const [playing, setPlaying] = useState(-1);
     const [melody, setMelody] = useState([
         8, 6, 3, 8, 7, 15, 4, 14, 3, 15, 0, 15, 10, 15, 15, 15
     ]);
@@ -84,8 +84,9 @@ const App = () => {
         beats.push(<Beat
             moveCallback={(y) => setNote(i, y)}
             key={i}
-            active={melody[i]}
-            activeName={notes[melody[i]].name}
+            activeIndex={melody[i]}
+            activeNote={notes[melody[i]]}
+            currentlyPlaying={playing === i}
             numNotes={settings.numNotes}
             height={settings.noteHeight}
             width={settings.noteWidth} />
@@ -94,8 +95,7 @@ const App = () => {
 
     // play melody using web audio api
     const play = () => {
-        if (!playing) {
-            setPlaying(true);
+        if (playing === -1) {
             const playNote = (note, duration) => {
                 if (note.name !== "tie") {
                     // create gain node and ramp down at the end of note
@@ -127,6 +127,7 @@ const App = () => {
 
             let counter = 0;
             playInterval = setInterval(() => {
+                setPlaying(counter);
                 if (counter >= melody.length) {
                     stop();
                 } else {
@@ -155,16 +156,17 @@ const App = () => {
     // clear interval and stop oscillator
     // note that playInterval and osc must be in global scope for this to work
     const stop = () => {
-        setPlaying(false);
+        setPlaying(-1);
         clearInterval(playInterval);
     };
 
     return (
         <div ref={pianoRollRef} id="app">
             {beats}
-            {playing ?
-                <button onClick={stop}>Stop</button> :
-                <button onClick={play}>Play</button>}
+            <br />
+            {playing === -1 ?
+                <button onClick={play}>Play</button> :
+                <button onClick={stop}>Stop</button>}
         </div>
     );
 };

@@ -6,10 +6,11 @@ html, body {
 
 body {
     color: #333;
+    background-color: #00884a;
     margin: 0;
     padding: 8px;
     box-sizing: border-box;
-    font-family: Roboto, Ubuntu, sans-serif;
+    font-family: 'Balsamiq Sans', Ubuntu, sans-serif;
 }
 
 a {
@@ -65,16 +66,30 @@ button:focus {
     border-color: #666;
 }
 
+#root {
+    text-align: center;
+}
+
+#app {
+    display: inline-block;
+}
+
 .beat {
+    background-color: #eef8bf;
     display: inline-block;
     position: relative;
 }
 
 .note {
-    border: 1px solid black;
+    border: 1px solid #efd790;
     box-sizing: border-box;
 }
 
 .note.active {
-    background-color: red;
+    font-size: 20px;
+    user-select: none;
+    position: absolute;
+    text-align: center;
+    display: table-cell;
+    vertical-align: middle;
 }
