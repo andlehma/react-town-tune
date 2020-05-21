@@ -98,18 +98,30 @@ const App = () => {
             setPlaying(true);
             const playNote = (note, duration) => {
                 if (note.name !== "tie") {
+                    // create gain node and ramp down at the end of note
+                    const gain = audioContext.createGain();
+                    gain.connect(audioContext.destination);
+                    let startTime = audioContext.currentTime;
+                    let endTime = startTime + (duration / 1000);
+                    gain.gain.setValueAtTime(1, endTime - .01);
+                    gain.gain.linearRampToValueAtTime(0, endTime);
+
+                    // create oscillator node and set frequency
                     const osc = audioContext.createOscillator();
                     osc.type = 'sine';
                     let freq;
                     if (note.name === "?") {
-                        freq = notes[randomInt(1, settings.numNotes - 2)].frequency;
+                        let r = randomInt(1, settings.numNotes - 2);
+                        freq = notes[r].frequency;
                     } else {
                         freq = note.frequency;
                     }
-                    osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-                    osc.connect(audioContext.destination);
+                    osc.frequency.setValueAtTime(freq, startTime);
+
+                    // connect osc to gain and play note
+                    osc.connect(gain);
                     osc.start();
-                    osc.stop(audioContext.currentTime + (duration - 1) / 1000);
+                    osc.stop(endTime);
                 }
             };
 
