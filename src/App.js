@@ -5,6 +5,17 @@ const randomInt = (min, max) => {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
+const arraysAreEqual = (a, b) => {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length != b.length) return false;
+
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
 const notes = [
     { name: "?", frequency: 0, color: "#f35fd2" },
     { name: "E6", frequency: 1318.51, color: "#c336a0" },
@@ -75,7 +86,15 @@ const App = () => {
         let n = Math.floor((relativeY / settings.pianoRollHeight) * settings.numNotes);
         let newMelody = [...melody];
         newMelody[i] = n;
-        setMelody(newMelody);
+
+        // do nothing if all the notes are the same
+        if (!arraysAreEqual(newMelody, melody)) {
+            setMelody(newMelody);
+
+            // preview new note
+            playNote(notes[n], 130);
+        }
+
     }
 
     // initialize child beat elements
@@ -93,38 +112,39 @@ const App = () => {
         );
     }
 
+    const playNote = (note, duration) => {
+        console.log(duration);
+        if (note.name !== "tie") {
+            // create gain node and ramp down at the end of note
+            const gain = audioContext.createGain();
+            gain.connect(audioContext.destination);
+            let startTime = audioContext.currentTime;
+            let endTime = startTime + (duration / 1000);
+            gain.gain.setValueAtTime(1, endTime - .01);
+            gain.gain.linearRampToValueAtTime(0, endTime);
+
+            // create oscillator node and set frequency
+            const osc = audioContext.createOscillator();
+            osc.type = 'sine';
+            let freq;
+            if (note.name === "?") {
+                let r = randomInt(1, settings.numNotes - 2);
+                freq = notes[r].frequency;
+            } else {
+                freq = note.frequency;
+            }
+            osc.frequency.setValueAtTime(freq, startTime);
+
+            // connect osc to gain and play note
+            osc.connect(gain);
+            osc.start();
+            osc.stop(endTime);
+        }
+    };
+
     // play melody using web audio api
     const play = () => {
         if (playing === -1) {
-            const playNote = (note, duration) => {
-                if (note.name !== "tie") {
-                    // create gain node and ramp down at the end of note
-                    const gain = audioContext.createGain();
-                    gain.connect(audioContext.destination);
-                    let startTime = audioContext.currentTime;
-                    let endTime = startTime + (duration / 1000);
-                    gain.gain.setValueAtTime(1, endTime - .01);
-                    gain.gain.linearRampToValueAtTime(0, endTime);
-
-                    // create oscillator node and set frequency
-                    const osc = audioContext.createOscillator();
-                    osc.type = 'sine';
-                    let freq;
-                    if (note.name === "?") {
-                        let r = randomInt(1, settings.numNotes - 2);
-                        freq = notes[r].frequency;
-                    } else {
-                        freq = note.frequency;
-                    }
-                    osc.frequency.setValueAtTime(freq, startTime);
-
-                    // connect osc to gain and play note
-                    osc.connect(gain);
-                    osc.start();
-                    osc.stop(endTime);
-                }
-            };
-
             let counter = 0;
             playInterval = setInterval(() => {
                 setPlaying(counter);
