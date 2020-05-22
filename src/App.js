@@ -40,21 +40,19 @@ const settings = {
     numBeats: 16,
     noteHeight: 30,
     noteWidth: 60,
-    bpm: 200,
     get pianoRollHeight() {
         return this.noteHeight * this.numNotes;
     },
     get pianoRollWidth() {
         return this.noteWidth * this.numBeats;
-    },
-    get noteDuration() {
-        return 60000 / this.bpm;
     }
 };
 
 // global audio context and oscillator
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = new AudioContext();
+const globGain = audioContext.createGain();
+globGain.connect(audioContext.destination);
 
 // global interval variable
 var playInterval;
@@ -64,6 +62,8 @@ const App = () => {
     const [melody, setMelody] = useState([
         8, 6, 3, 8, 7, 15, 4, 14, 3, 15, 0, 15, 10, 15, 15, 15
     ]);
+    const [volume, setVolume] = useState(.8);
+    const [tempo, setTempo] = useState(200);
 
     // need a reference to the piano roll container div
     // to calculate relative Y position when moving notes
@@ -113,14 +113,14 @@ const App = () => {
     }
 
     const playNote = (note, duration) => {
-        console.log(duration);
         if (note.name !== "tie") {
             // create gain node and ramp down at the end of note
             const gain = audioContext.createGain();
-            gain.connect(audioContext.destination);
+            gain.connect(globGain);
             let startTime = audioContext.currentTime;
+            gain.gain.setValueAtTime(volume, startTime);
             let endTime = startTime + (duration / 1000);
-            gain.gain.setValueAtTime(1, endTime - .01);
+            gain.gain.setValueAtTime(volume, endTime - .01);
             gain.gain.linearRampToValueAtTime(0, endTime);
 
             // create oscillator node and set frequency
@@ -145,19 +145,20 @@ const App = () => {
     // play melody using web audio api
     const play = () => {
         if (playing === -1) {
+            let noteDuration = 60000 / tempo;
             let counter = 0;
             playInterval = setInterval(() => {
                 setPlaying(counter);
                 if (counter >= melody.length) {
                     stop();
                 } else {
-                    let duration = settings.noteDuration;
+                    let duration = noteDuration;
                     if (notes[melody[counter]].name === "tie") {
                         duration = 0;
                     } else {
                         for (let i = counter + 1; i < melody.length; i++) {
                             if (notes[melody[i]].name === "tie") {
-                                duration += settings.noteDuration;
+                                duration += noteDuration;
                             } else {
                                 break;
                             }
@@ -169,7 +170,7 @@ const App = () => {
                     );
                 }
                 counter++;
-            }, settings.noteDuration);
+            }, noteDuration);
         }
     };
 
@@ -187,6 +188,35 @@ const App = () => {
             {playing === -1 ?
                 <button onClick={play}>Play</button> :
                 <button onClick={stop}>Stop</button>}
+            <div id="settings">
+                <label>
+                    Volume:
+                <input
+                        type="range"
+                        value={volume}
+                        min="0"
+                        max="1"
+                        step=".01"
+                        onChange={(e) => {
+                            setVolume(e.target.value);
+                            globGain.gain.setValueAtTime(parseFloat(e.target.value),
+                                audioContext.currentTime);
+                        }}
+                    />
+                </label>
+
+                <label>
+                    Tempo:
+                <input
+                        type="range"
+                        value={tempo}
+                        min="50"
+                        max="350"
+                        onChange={(e) => {
+                            setTempo(e.target.value);
+                        }} />
+                </label>
+            </div>
         </div>
     );
 };

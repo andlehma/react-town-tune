@@ -26,10 +26,6 @@ a:visited {
     color: rgb(0, 80, 160);
 }
 
-label {
-    display: block;
-}
-
 input, button, select, textarea {
     font-family: inherit;
     font-size: inherit;
@@ -45,7 +41,8 @@ input:disabled {
 }
 
 input[type="range"] {
-    height: 0;
+    vertical-align: middle;
+    margin: 0 .25em;
 }
 
 button {
@@ -64,6 +61,11 @@ button:not(:disabled):active {
 
 button:focus {
     border-color: #666;
+}
+
+label {
+    margin: 0 .5em;
+    color: white;
 }
 
 #root {
