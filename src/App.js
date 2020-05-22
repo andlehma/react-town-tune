@@ -16,6 +16,11 @@ const arraysAreEqual = (a, b) => {
     return true;
 }
 
+const setIntervalImmediately = (func, interval) => {
+    func();
+    return setInterval(func, interval);
+}
+
 const notes = [
     { name: "?", frequency: 0, color: "#f35fd2" },
     { name: "E6", frequency: 1318.51, color: "#c336a0" },
@@ -147,7 +152,7 @@ const App = () => {
         if (playing === -1) {
             let noteDuration = 60000 / tempo;
             let counter = 0;
-            playInterval = setInterval(() => {
+            playInterval = setIntervalImmediately(() => {
                 setPlaying(counter);
                 if (counter >= melody.length) {
                     stop();
