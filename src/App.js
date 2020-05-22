@@ -69,6 +69,7 @@ const App = () => {
     ]);
     const [volume, setVolume] = useState(.8);
     const [tempo, setTempo] = useState(200);
+    const [oscType, setOscType] = useState("sine");
 
     // need a reference to the piano roll container div
     // to calculate relative Y position when moving notes
@@ -130,7 +131,7 @@ const App = () => {
 
             // create oscillator node and set frequency
             const osc = audioContext.createOscillator();
-            osc.type = 'sine';
+            osc.type = oscType;
             let freq;
             if (note.name === "?") {
                 let r = randomInt(1, settings.numNotes - 2);
@@ -186,6 +187,10 @@ const App = () => {
         clearInterval(playInterval);
     };
 
+    const changeOscType = (e) => {
+        setOscType(e.target.value);
+    }
+
     return (
         <div ref={pianoRollRef} id="app">
             {beats}
@@ -220,6 +225,39 @@ const App = () => {
                         onChange={(e) => {
                             setTempo(e.target.value);
                         }} />
+                </label>
+
+                <label>sin
+                <input
+                        type="radio"
+                        name="osc-type"
+                        onChange={changeOscType}
+                        value="sine"
+                        checked={oscType === "sine"} />
+                </label>
+                <label>squ
+                <input
+                        type="radio"
+                        name="osc-type"
+                        onChange={changeOscType}
+                        value="square"
+                        checked={oscType === "square"} />
+                </label>
+                <label>saw
+                <input
+                        type="radio"
+                        name="osc-type"
+                        onChange={changeOscType}
+                        value="sawtooth"
+                        checked={oscType === "sawtooth"} />
+                </label>
+                <label>tri
+                <input
+                        type="radio"
+                        name="osc-type"
+                        onChange={changeOscType}
+                        value="triangle"
+                        checked={oscType === "triangle"} />
                 </label>
             </div>
         </div>

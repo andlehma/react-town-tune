@@ -40,7 +40,8 @@ input:disabled {
     color: #ccc;
 }
 
-input[type="range"] {
+input[type="range"],
+input[type="radio"] {
     vertical-align: middle;
     margin: 0 .25em;
 }
