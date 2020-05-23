@@ -33,7 +33,14 @@ const Beat = (props) => {
         axis="y"
         grid={[props.height, props.height]}
         bounds="parent"
-        onDrag={(e) => props.moveCallback(e.clientY)}>
+        onDrag={(e) => {
+            if (e.type === "mousemove") {
+                props.moveCallback(e.clientY)
+            }
+            if (e.type === "touchmove") {
+                props.moveCallback(e.touches[0].clientY);
+            }
+        }}>
         <div
             className="note active"
             style={{
