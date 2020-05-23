@@ -267,6 +267,13 @@ const App = () => {
                     </label>
                 </div>
             </div>
+            <footer>
+                <span style={{color: "#FAA"}}>♥</span>
+                &nbsp;|&nbsp;
+                <a href="https://github.com/andlehma/react-town-tune">GitHub</a>
+                &nbsp;|&nbsp;
+                <a href="http://andrewlehman.me/">Andrew Lehman</a>
+            </footer>
         </div>
     );
 };
