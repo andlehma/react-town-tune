@@ -43,8 +43,12 @@ const notes = [
 const settings = {
     numNotes: notes.length,
     numBeats: 16,
-    noteHeight: 30,
-    noteWidth: 60,
+    get noteWidth() {
+        return Math.min(60, (window.innerWidth - 16) / this.numBeats);
+    },
+    get noteHeight() {
+        return Math.floor(this.noteWidth / 2);
+    },
     get pianoRollHeight() {
         return this.noteHeight * this.numNotes;
     },
@@ -192,9 +196,10 @@ const App = () => {
     }
 
     return (
-        <div ref={pianoRollRef} id="app">
-            {beats}
-            <br />
+        <div id="app">
+            <div ref={pianoRollRef} id="piano-roll">
+                {beats}
+            </div>
             {playing === -1 ?
                 <button onClick={play}>Play</button> :
                 <button onClick={stop}>Stop</button>}
@@ -227,38 +232,40 @@ const App = () => {
                         }} />
                 </label>
 
-                <label>sin
+                <div id="osc-type">
+                    <label>sin
                 <input
-                        type="radio"
-                        name="osc-type"
-                        onChange={changeOscType}
-                        value="sine"
-                        checked={oscType === "sine"} />
-                </label>
-                <label>squ
+                            type="radio"
+                            name="osc-type"
+                            onChange={changeOscType}
+                            value="sine"
+                            checked={oscType === "sine"} />
+                    </label>
+                    <label>squ
                 <input
-                        type="radio"
-                        name="osc-type"
-                        onChange={changeOscType}
-                        value="square"
-                        checked={oscType === "square"} />
-                </label>
-                <label>saw
+                            type="radio"
+                            name="osc-type"
+                            onChange={changeOscType}
+                            value="square"
+                            checked={oscType === "square"} />
+                    </label>
+                    <label>saw
                 <input
-                        type="radio"
-                        name="osc-type"
-                        onChange={changeOscType}
-                        value="sawtooth"
-                        checked={oscType === "sawtooth"} />
-                </label>
-                <label>tri
+                            type="radio"
+                            name="osc-type"
+                            onChange={changeOscType}
+                            value="sawtooth"
+                            checked={oscType === "sawtooth"} />
+                    </label>
+                    <label>tri
                 <input
-                        type="radio"
-                        name="osc-type"
-                        onChange={changeOscType}
-                        value="triangle"
-                        checked={oscType === "triangle"} />
-                </label>
+                            type="radio"
+                            name="osc-type"
+                            onChange={changeOscType}
+                            value="triangle"
+                            checked={oscType === "triangle"} />
+                    </label>
+                </div>
             </div>
         </div>
     );

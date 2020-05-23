@@ -67,6 +67,7 @@ button:focus {
 label {
     margin: 0 .5em;
     color: white;
+    display: block;
 }
 
 #root {
@@ -75,6 +76,10 @@ label {
 
 #app {
     display: inline-block;
+}
+
+#piano-roll {
+    white-space: nowrap;
 }
 
 .beat {
@@ -86,6 +91,7 @@ label {
 .note {
     border: 1px solid #efd790;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .note.active {
@@ -95,4 +101,14 @@ label {
     text-align: center;
     display: table-cell;
     vertical-align: middle;
+}
+
+#osc-type label{
+    display: inline;
+}
+
+@media all and (max-width: 960px) {
+    .note.active {
+        font-size: 12px;
+    }
 }
